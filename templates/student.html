@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student • MICDS Fitness — Student Dashboard</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- GSAP + Motion One -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.16.2/dist/motion.umd.js"></script>
+
+    <style>
+        :root{
+            --offwhite: #F8F0E3;     /* preferred off-white */
+            --dark-green: #062E1E;   /* very dark green accent */
+            --muted: #6b6b64;
+            --card: #ffffff;
+            --glass: rgba(255,255,255,0.6);
+        }
+
+        html, body { height:100%; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            -webkit-font-smoothing:antialiased;
+            background: linear-gradient(180deg, var(--offwhite) 0%, #fbf7f1 100%);
+            color: #0b1b17;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+
+        /* CARD */
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(8,12,10,0.06);
+            transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+            border: 1px solid rgba(6,46,30,0.04);
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(6,46,30,0.09); }
+
+        /* accent text */
+        .accent { color: var(--dark-green); }
+        .pill {
+            background: linear-gradient(180deg, rgba(6,46,30,0.03), rgba(6,46,30,0.01));
+            color: var(--dark-green);
+            border: 1px solid rgba(6,46,30,0.06);
+        }
+
+        /* buttons */
+        .btn-primary {
+            background: linear-gradient(180deg, #0d1b17, #0a1512);
+            color: #fff;
+            padding: .6rem .9rem;
+            border-radius: .6rem;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(8,12,10,0.12);
+            transition: transform .18s ease, box-shadow .18s ease;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(8,12,10,0.18); }
+
+        .btn-outline {
+            background: transparent;
+            padding: .55rem .85rem;
+            border-radius: .6rem;
+            border: 1px solid rgba(6,46,30,0.12);
+            color: var(--dark-green);
+            font-weight: 600;
+            transition: all .16s ease;
+        }
+        .btn-outline:hover { background: rgba(6,46,30,0.03); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(6,46,30,0.06); }
+
+        /* inputs */
+        .input {
+            background: rgba(240,240,236,0.95);
+            border-radius: .6rem;
+            border: 1px solid rgba(6,46,30,0.06);
+            padding: .6rem .8rem;
+            outline: none;
+            transition: box-shadow .12s;
+        }
+        .input:focus { box-shadow: 0 8px 20px rgba(6,46,30,0.06); }
+
+        .muted { color: var(--muted); font-size:.93rem; }
+        .small { font-size:.85rem; color:var(--muted); }
+
+        /* tabs */
+        .tab-btn { cursor:pointer; padding:.6rem 1rem; border-radius: .6rem; font-weight:600; }
+        .tab-btn.active { background: linear-gradient(180deg, rgba(6,46,30,0.08), rgba(6,46,30,0.03)); color: var(--dark-green); }
+
+        /* responsive grid helper */
+        @media (min-width: 1024px) {
+            .lg-grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+        }
+
+        /* subtle scrollbar for panels */
+        .scrollbar-thin::-webkit-scrollbar { height:8px; width:8px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 8px; }
+
+        /* small animations */
+        .fade-in { opacity: 0; transform: translateY(8px); }
+
+        /* compact tables */
+        table.compact { width:100%; border-collapse:collapse; }
+        table.compact td, table.compact th { padding:.5rem; border-bottom:1px solid rgba(6,46,30,0.03); }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+<!-- TOP NAV -->
+<nav class="w-full backdrop-blur-sm px-6 md:px-10 py-4 flex items-center justify-between sticky top-0 z-50"
+     style="background: linear-gradient(180deg, rgba(248,240,227,0.86), rgba(248,240,227,0.70)); border-bottom: 1px solid rgba(6,46,30,0.03);">
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl card flex items-center justify-center" style="background:linear-gradient(180deg, rgba(255,255,255,0.7), rgba(248,240,227,0.45));">
+                <!-- logo -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="opacity-95">
+                    <rect x="2" y="2" width="20" height="20" rx="5" stroke="rgba(6,46,30,0.12)" stroke-width="1.4" fill="none"></rect>
+                    <path d="M6 14c2-3 5-5 8-5" stroke="#062E1E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div>
+                <div class="text-lg font-semibold">Student Dashboard</div>
+                <div class="text-xs muted">MICDS Fitness • Student View</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- center search -->
+    <div class="flex-1 px-6 hidden lg:flex items-center justify-center">
+        <div class="relative w-full max-w-2xl">
+            <input id="searchBox" type="search" placeholder="Search students or teachers (press Enter)" class="input w-full pl-4 pr-36 py-3 rounded-xl shadow-sm" autocomplete="off" aria-autocomplete="list"/>
+
+            <!-- Autocomplete dropdown -->
+            <div id="autocomplete" class="hidden absolute left-0 right-0 mt-2 bg-white card p-2 shadow-lg border" style="border-color: rgba(6,46,30,0.04);">
+                <div id="autoResults" class="divide-y divide-gray-100"></div>
+                <div id="autoFooter" class="text-xs small text-right pr-2 pt-2">Press Enter to go</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- right controls -->
+    <div class="flex items-center gap-4">
+
+
+        <button id="openMessagesBtn" class="openMessages btn-outline px-3 py-2 hidden md:inline-flex items-center gap-2" title="Open messages">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#062E1E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Messages
+        </button>
+
+        <a href="/logout" class="text-sm muted hover:underline">Logout</a>
+    </div>
+</nav>
+
+<!-- SUB-NAV (tabs) -->
+<div class="w-full bg-transparent border-b" style="border-color: rgba(6,46,30,0.03);">
+    <div class="max-w-6xl mx-auto px-6 md:px-10 py-3 flex items-center gap-4">
+        <div id="tabStats" class="tab-btn active" data-target="statsPage">Statistics</div>
+        <div id="tabForms" class="tab-btn" data-target="formsPage">Forms</div>
+        <div id="tabSports" class="tab-btn" data-target="sportsPage">Sports & Achievements</div>
+        <div class="ml-auto small muted">School News</div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT (single-page tabbed) -->
+<main class="flex-1 p-6 md:p-10 space-y-8 relative overflow-x-hidden max-w-7xl mx-auto">
+
+    <!-- STATISTICS PAGE -->
+    <section id="statsPage" class="card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-semibold">Your Performance Statistics</h2>
+                <p class="muted mt-1">Track vertical jump, sprints, lifts, balance, and more.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="small muted">Last updated: <span id="statsUpdated">—</span></div>
+                <button id="exportStats" class="btn-outline">Export CSV</button>
+            </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-4">
+                <h4 class="font-semibold">Power & Jumps</h4>
+                <div class="mt-3 grid grid-cols-2 gap-3 small muted">
+                    <div>Vertical Jump <div class="font-medium"> <span id="stat_vjump">—</span> cm</div></div>
+                    <div>Broad Jump <div class="font-medium"> <span id="stat_broad">—</span> cm</div></div>
+                    <div>Jump Force <div class="font-medium"> <span id="stat_force">—</span> N</div></div>
+                    <div>Air Time <div class="font-medium"> <span id="stat_air">—</span> s</div></div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="font-semibold">Sprint & Track</h4>
+                <div class="mt-3 grid grid-cols-2 gap-3 small muted">
+                    <div>Flying 10 <div class="font-medium"> <span id="stat_f10">—</span> s</div></div>
+                    <div>Track Interval <div class="font-medium"> <span id="stat_interval">—</span> s</div></div>
+                    <div>Weekly Consistency <div class="font-medium"> <span id="stat_consistency">—</span> %</div></div>
+                    <div>Max Sprint <div class="font-medium"> <span id="stat_maxsprint">—</span> m/s</div></div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="font-semibold">Lifts & Strength</h4>
+                <div class="mt-3 grid grid-cols-2 gap-3 small muted">
+                    <div>Hang Clean <div class="font-medium"> <span id="stat_hangclean">—</span> kg</div></div>
+                    <div>Bench <div class="font-medium"> <span id="stat_bench">—</span> kg</div></div>
+                    <div>Back Squat <div class="font-medium"> <span id="stat_backsquat">—</span> kg</div></div>
+                    <div>Front Squat <div class="font-medium"> <span id="stat_frontsquat">—</span> kg</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card p-4">
+                <h4 class="font-semibold">Body & Balance</h4>
+                <div class="mt-3 grid grid-cols-2 gap-3 small muted">
+                    <div>Height <div class="font-medium"> <span id="stat_height">—</span> cm</div></div>
+                    <div>Weight <div class="font-medium"> <span id="stat_weight">—</span> kg</div></div>
+                    <div>BMI <div class="font-medium"> <span id="stat_bmi">—</span></div></div>
+                    <div>Balance L/R <div class="font-medium"> <span id="stat_balance">—</span></div></div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="font-semibold">Progress Overview</h4>
+                <p class="small muted mt-1">Trend lines and progress milestones.</p>
+                <div class="mt-4">
+                    <canvas id="progressChart" height="140"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex items-center gap-3">
+            <button id="openAddStatsBtn" class="btn-outline">Add / Update Stats</button>
+            <button id="compareBtn" class="btn-outline">Compare to cohort</button>
+            <div class="ml-auto small muted">Shareable link: <a href="#" class="underline">Copy</a></div>
+        </div>
+    </section>
+
+    <!-- FORMS PAGE -->
+    <section id="formsPage" class="card p-6 hidden">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-semibold">Your Forms</h2>
+                <p class="muted mt-1">Fill active forms and review past submissions + teacher feedback.</p>
+            </div>
+            <div class="small muted">Pending: <span id="studentPending">0</span></div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Active forms list -->
+            <div class="card p-4">
+                <h4 class="font-semibold">Active Forms</h4>
+                <div id="activeFormsList" class="mt-3 space-y-3 max-h-72 overflow-auto scrollbar-thin small muted">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+
+            <!-- Past submissions -->
+            <div class="card p-4">
+                <h4 class="font-semibold">Past Submissions</h4>
+                <div id="pastFormsList" class="mt-3 space-y-3 max-h-72 overflow-auto scrollbar-thin small muted">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 flex items-center gap-2">
+            <button id="showAllForms" class="btn-outline">Show all</button>
+            <button id="downloadResponses" class="btn-outline">Export</button>
+        </div>
+    </section>
+
+    <!-- SPORTS + ACHIEVEMENTS PAGE -->
+    <section id="sportsPage" class="card p-6 hidden">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-semibold">Sports & Achievements</h2>
+                <p class="muted mt-1">Add sports you've played, see credits, and add personal achievements.</p>
+            </div>
+            <div class="small muted">Credits: <span id="sportCredits">0</span></div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card p-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-semibold">Your Sports</h4>
+                    <div class="small muted">Click a sport to view notes</div>
+                </div>
+
+                <div id="sportsList" class="mt-3 space-y-3 small muted max-h-64 overflow-auto scrollbar-thin">
+                    <!-- each sport is clickable to open achievement/notes modal -->
+                </div>
+
+                <div class="mt-4 flex gap-2">
+                    <button id="openAddSportBtn" class="btn-primary">Add Sport</button>
+                    <button id="exportSports" class="btn-outline">Export</button>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="font-semibold">Your Achievements</h4>
+                <form id="studentAchievementForm" class="mt-3" onsubmit="event.preventDefault(); submitStudentAchievement();">
+                    <input id="sa_title" class="input w-full" placeholder="Achievement title (e.g. Best Effort)" required />
+                    <textarea id="sa_desc" class="input w-full mt-2" rows="3" placeholder="Short description"></textarea>
+                    <div class="mt-3 flex gap-2">
+                        <button class="btn-primary">Add Achievement</button>
+                        <button id="uploadAchievementBtn" type="button" class="btn-outline">Attach file</button>
+                    </div>
+                </form>
+
+                <div id="studentAchievementsList" class="mt-4 space-y-3 small muted max-h-52 overflow-auto scrollbar-thin">
+                    <!-- user's achievements appear here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 card p-4">
+            <h4 class="font-semibold">MICDS News</h4>
+            <div id="newsFeed" class="mt-3 small muted max-h-48 overflow-auto scrollbar-thin">Recent student achievements and highlights. (Work in progress)</div>
+        </div>
+    </section>
+
+</main>
+
+<!-- MODALS -->
+<div id="fillFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('fillFormModal')"></div>
+    <div class="relative w-full max-w-2xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('fillFormModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Fill Form</h3>
+        <form id="fillForm" class="mt-4" onsubmit="event.preventDefault(); submitFormResponse();">
+            <div class="small muted">Question:</div>
+            <div id="fillFormPrompt" class="mt-2 small muted">—</div>
+            <div class="mt-3">
+                <label class="small muted">Rating (1-4)</label>
+                <select id="formRating" class="input mt-2 w-full">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4" selected>4</option>
+                </select>
+            </div>
+            <textarea id="formResponse" class="input w-full mt-3" rows="4" placeholder="Write your response..."></textarea>
+            <div class="mt-4 flex gap-2">
+                <button class="btn-primary">Submit</button>
+                <button class="btn-outline" type="button" onclick="closeModal('fillFormModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="sportModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('sportModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('sportModal')">✕</button>
+        <h3 class="text-lg font-semibold accent" id="sportModalTitle">Sport</h3>
+        <div class="small muted mt-2" id="sportModalNotes">Coach notes — Work in progress</div>
+        <div class="mt-4 flex gap-2">
+            <button class="btn-primary" onclick="closeModal('sportModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="addSportModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('addSportModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('addSportModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Add Sport</h3>
+        <form id="addSportForm" onsubmit="event.preventDefault(); submitAddSport();">
+            <input id="sport_name" class="input w-full" placeholder="Sport name (e.g. Soccer)" required />
+            <input id="sport_season" class="input w-full mt-2" placeholder="Season (e.g. Fall 2025)" />
+            <div class="mt-3 flex gap-2">
+                <button class="btn-primary">Add</button>
+                <button class="btn-outline" type="button" onclick="closeModal('addSportModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="uploadAchievementModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('uploadAchievementModal')"></div>
+    <div class="relative w-full max-w-lg card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('uploadAchievementModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Attach Achievement File</h3>
+        <p class="small muted mt-1">Upload a photo or PDF supporting your achievement.</p>
+        <form id="uploadAchievementForm" onsubmit="event.preventDefault(); submitUploadAchievement();">
+            <input id="ach_file" type="file" class="input w-full mt-3" accept="image/*,.pdf" />
+            <div class="mt-4 flex gap-2">
+                <button class="btn-primary">Upload</button>
+                <button class="btn-outline" type="button" onclick="closeModal('uploadAchievementModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPTS: small inline behaviors and mock data (full student.js will be provided later) -->
+<script>
+    // minimal helpers
+    function $(s,ctx=document){return ctx.querySelector(s)}
+    function $all(s,ctx=document){return Array.from(ctx.querySelectorAll(s))}
+    function openModal(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('hidden'); document.body.style.overflow='hidden'; }
+    function closeModal(id){ const el=document.getElementById(id); if(!el) return; el.classList.add('hidden'); document.body.style.overflow=''; }
+
+    // tab switching
+    const tabs = $all('.tab-btn');
+    tabs.forEach(t=> t.addEventListener('click', ()=>{
+        tabs.forEach(x=> x.classList.remove('active'));
+        t.classList.add('active');
+        const target = t.dataset.target;
+        ['statsPage','formsPage','sportsPage'].forEach(id=> document.getElementById(id).classList.add('hidden'));
+        document.getElementById(target).classList.remove('hidden');
+        window.scrollTo({top:0,behavior:'smooth'});
+    }));
+
+    // mock state
+    const state = {
+        stats: {
+            vjump: 42, broad: 190, force: 1200, air: 0.42,
+            f10: 1.62, interval: 14.5, consistency: 82, maxsprint: 8.2,
+            hangclean: 80, bench: 85, backsquat: 120, frontsquat: 100,
+            height: 178, weight: 72, bmi: 22.7, balance: 'L: 98%, R: 96%'
+        },
+        activeForms: [
+            {id:401,title:'Weekly Reflection',prompt:'How did you feel this week?',due:'2025-11-12'},
+            {id:402,title:'Recovery Check',prompt:'Describe your recovery since last session.',due:'2025-11-10'}
+        ],
+        pastSubmissions: [
+            {id:501,formId:401,date:'2025-11-01',rating:3,response:'Felt steady.',teacherFeedback:'Good work — focus on recovery.'}
+        ],
+        sports: [
+            {id:1,name:'Soccer',season:'Fall 2024',notes:'Work in progress'},
+            {id:2,name:'Track',season:'Spring 2025',notes:'Work in progress'}
+        ],
+        achievements: [
+            {id:1,title:'Completed 5 sessions streak',date:'2025-11-01'}
+        ],
+        news: [
+            {id:1,title:'Player of the Week: Jane Doe',desc:'Outstanding performance in regional meet.'}
+        ]
+    };
+
+    function populateStats(){
+        const s = state.stats;
+        $('#stat_vjump').textContent = s.vjump;
+        $('#stat_broad').textContent = s.broad;
+        $('#stat_force').textContent = s.force;
+        $('#stat_air').textContent = s.air;
+        $('#stat_f10').textContent = s.f10;
+        $('#stat_interval').textContent = s.interval;
+        $('#stat_consistency').textContent = s.consistency;
+        $('#stat_maxsprint').textContent = s.maxsprint;
+        $('#stat_hangclean').textContent = s.hangclean;
+        $('#stat_bench').textContent = s.bench;
+        $('#stat_backsquat').textContent = s.backsquat;
+        $('#stat_frontsquat').textContent = s.frontsquat;
+        $('#stat_height').textContent = s.height;
+        $('#stat_weight').textContent = s.weight;
+        $('#stat_bmi').textContent = s.bmi;
+        $('#stat_balance').textContent = s.balance;
+        $('#statsUpdated').textContent = new Date().toLocaleString();
+    }
+
+    function populateForms(){
+        const active = $('#activeFormsList'); active.innerHTML='';
+        for(const f of state.activeForms){
+            const div = document.createElement('div'); div.className='p-3 card';
+            div.innerHTML = `<div class="small muted">Form • ${f.title}</div><div class="font-medium mt-1">${f.prompt}</div><div class="small muted mt-1">Due ${f.due}</div><div class="mt-3"><button class="btn-primary" onclick="openFillFormModal(${f.id})">Fill Form</button></div>`;
+            active.appendChild(div);
+        }
+        const past = $('#pastFormsList'); past.innerHTML='';
+        for(const p of state.pastSubmissions){
+            const div = document.createElement('div'); div.className='p-3 card';
+            div.innerHTML = `<div class="small muted">${p.date} • Form ${p.formId}</div><div class="mt-1">Your rating: <b>${p.rating}</b> — You wrote: "${p.response}"</div><div class="mt-2 small muted">Teacher feedback: "${p.teacherFeedback || '—'}"</div>`;
+            past.appendChild(div);
+        }
+        $('#studentPending').textContent = state.activeForms.length;
+    }
+
+    function populateSports(){
+        const list = $('#sportsList'); list.innerHTML='';
+        for(const s of state.sports){
+            const item = document.createElement('div'); item.className='p-3 card flex items-center justify-between';
+            item.innerHTML = `<div><div class="font-medium">${s.name} • ${s.season}</div><div class="small muted">Coach notes: ${s.notes}</div></div><div><button class="btn-outline" onclick="openSportModal('${s.name.replace(/'/g, "\'")}', '${s.notes.replace(/'/g, "\'")}')">View</button></div>`;
+            list.appendChild(item);
+        }
+        const ach = $('#studentAchievementsList'); ach.innerHTML='';
+        for(const a of state.achievements){
+            const el = document.createElement('div'); el.className='p-3 card'; el.innerHTML = `<div class="font-medium">${a.title}</div><div class="small muted mt-1">${a.date}</div>`; ach.appendChild(el);
+        }
+        const nf = $('#newsFeed'); nf.innerHTML = '';
+        for(const n of state.news){ const d=document.createElement('div'); d.className='p-3 card'; d.innerHTML=`<div class="font-medium">${n.title}</div><div class="small muted mt-1">${n.desc}</div>`; nf.appendChild(d);}
+        $('#sportCredits').textContent = 3; // mock
+    }
+
+    // modal and action handlers
+    function openFillFormModal(id){
+        const f = state.activeForms.find(x=>x.id===id) || state.activeForms[0];
+        $('#fillFormPrompt').textContent = f ? f.prompt : '—';
+        openModal('fillFormModal');
+    }
+
+    function submitFormResponse(){
+        const rating = $('#formRating').value; const text = $('#formResponse').value.trim();
+        alert('Form submitted (mock). Rating: '+rating+' — '+text.slice(0,120));
+        closeModal('fillFormModal');
+    }
+
+    function openSportModal(name, notes){
+        $('#sportModalTitle').textContent = name;
+        $('#sportModalNotes').textContent = notes || 'Work in progress';
+        openModal('sportModal');
+    }
+
+    function submitAddSport(){
+        const name = $('#sport_name').value.trim(); const season = $('#sport_season').value.trim();
+        if(!name) return alert('Provide a sport name');
+        state.sports.unshift({id:Date.now(),name,season,notes:'Work in progress'});
+        populateSports(); closeModal('addSportModal');
+    }
+
+    function submitStudentAchievement(){
+        const title = $('#sa_title').value.trim(); const desc = $('#sa_desc').value.trim();
+        if(!title) return alert('Add a title');
+        const d = new Date().toLocaleDateString(); state.achievements.unshift({id:Date.now(),title,date:d});
+        populateSports(); $('#sa_title').value=''; $('#sa_desc').value='';
+    }
+
+    function submitUploadAchievement(){ alert('Uploaded (mock).'); closeModal('uploadAchievementModal'); }
+
+    // small chart for progress
+    function drawProgressChart(){
+        const ctx = document.getElementById('progressChart');
+        if(!ctx) return;
+        const data = {
+            labels: ['Jan','Mar','May','Jul','Sep','Nov'],
+            datasets: [{ label:'Performance Index', data:[48,52,56,62,68,72], tension:0.4, borderWidth:2, fill:true, backgroundColor:'rgba(6,46,30,0.08)', borderColor:'#0B8B5A', pointRadius:0 }]
+        };
+        // lazy load Chart.js
+        const s = document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/chart.js'; s.onload = ()=>{ new Chart(ctx, {type:'line', data, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'rgba(6,46,30,0.05)'}}}}); };
+            document.body.appendChild(s);
+        }
+
+        // export CSV (simple client-side)
+        function exportStatsCSV(){
+            const s = state.stats;
+            const rows = [['metric','value'],['vertical_jump',s.vjump],['broad_jump',s.broad],['jump_force',s.force],['air_time',s.air],['flying_10',s.f10],['hang_clean',s.hangclean]];
+            const csv = rows.map(r=> r.join(',')).join('
+            ');
+            const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='stats_export.csv'; a.click(); URL.revokeObjectURL(url);
+        }
+
+        // init
+        document.addEventListener('DOMContentLoaded', ()=>{
+            populateStats(); populateForms(); populateSports(); drawProgressChart();
+            $('#openAddStatsBtn').addEventListener('click', ()=> openModal('addSportModal'));
+            $('#openAddSportBtn').addEventListener('click', ()=> openModal('addSportModal'));
+            $('#uploadAchievementBtn').addEventListener('click', ()=> openModal('uploadAchievementModal'));
+            $('#exportStats').addEventListener('click', exportStatsCSV);
+            $('#studentSearchBtn').addEventListener('click', ()=> alert('Search (mock): '+$('#studentSearch').value));
+        });
+    }
+
+</script>
+
+<script type="module" src="/static/student.js"></script>
+
+<!-- Note: full student.js and server routes can be generated when you ask -->
+</body>
+</html>

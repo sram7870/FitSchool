@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin • MICDS Fitness — Dashboard</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- GSAP + Motion One -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.16.2/dist/motion.umd.js"></script>
+
+    <style>
+        :root{
+            --offwhite: #F8F0E3;     /* preferred off-white */
+            --dark-green: #062E1E;   /* very dark green accent */
+            --muted: #6b6b64;
+            --card: #ffffff;
+            --glass: rgba(255,255,255,0.6);
+        }
+
+        html, body { height:100%; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            -webkit-font-smoothing:antialiased;
+            background: linear-gradient(180deg, var(--offwhite) 0%, #fbf7f1 100%);
+            color: #0b1b17;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+
+        /* CARD */
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(8,12,10,0.06);
+            transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+            border: 1px solid rgba(6,46,30,0.04);
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(6,46,30,0.09); }
+
+        /* accent text */
+        .accent { color: var(--dark-green); }
+        .pill {
+            background: linear-gradient(180deg, rgba(6,46,30,0.03), rgba(6,46,30,0.01));
+            color: var(--dark-green);
+            border: 1px solid rgba(6,46,30,0.06);
+        }
+
+        /* buttons */
+        .btn-primary {
+            background: linear-gradient(180deg, #0d1b17, #0a1512);
+            color: #fff;
+            padding: .6rem .9rem;
+            border-radius: .6rem;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(8,12,10,0.12);
+            transition: transform .18s ease, box-shadow .18s ease;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(8,12,10,0.18); }
+
+        .btn-outline {
+            background: transparent;
+            padding: .55rem .85rem;
+            border-radius: .6rem;
+            border: 1px solid rgba(6,46,30,0.12);
+            color: var(--dark-green);
+            font-weight: 600;
+            transition: all .16s ease;
+        }
+        .btn-outline:hover { background: rgba(6,46,30,0.03); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(6,46,30,0.06); }
+
+        /* inputs */
+        .input {
+            background: rgba(240,240,236,0.95);
+            border-radius: .6rem;
+            border: 1px solid rgba(6,46,30,0.06);
+            padding: .6rem .8rem;
+            outline: none;
+            transition: box-shadow .12s;
+        }
+        .input:focus { box-shadow: 0 8px 20px rgba(6,46,30,0.06); }
+
+        .muted { color: var(--muted); font-size:.93rem; }
+        .small { font-size:.85rem; color:var(--muted); }
+
+        /* stats ring visuals */
+        .ring-wrap { width: 84px; height: 84px; display:inline-block; }
+        .ring-label { font-weight:700; font-size:1.05rem; color: #07120f; }
+
+        /* messenger (hidden by default) */
+        .messenger {
+            width: 420px;
+            max-width: calc(100% - 32px);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            z-index: 80;
+            transform: translateX(100%);
+        }
+
+        /* left filter panel */
+        .filter-panel {
+            width: 360px;
+            max-width: calc(100% - 32px);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 70;
+            transform: translateX(-100%);
+        }
+
+        /* responsive grid helper */
+        @media (min-width: 1024px) {
+            .lg-grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+        }
+
+        /* subtle scrollbar for panels */
+        .scrollbar-thin::-webkit-scrollbar { height:8px; width:8px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 8px; }
+
+        /* small animations */
+        .fade-in { opacity: 0; transform: translateY(8px); }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- TOP NAV -->
+    <nav class="w-full backdrop-blur-sm px-6 md:px-10 py-4 flex items-center justify-between sticky top-0 z-50"
+         style="background: linear-gradient(180deg, rgba(248,240,227,0.86), rgba(248,240,227,0.70)); border-bottom: 1px solid rgba(6,46,30,0.03);">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl card flex items-center justify-center" style="background:linear-gradient(180deg, rgba(255,255,255,0.7), rgba(248,240,227,0.45));">
+                    <!-- logo -->
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="opacity-95">
+                        <rect x="2" y="2" width="20" height="20" rx="5" stroke="rgba(6,46,30,0.12)" stroke-width="1.4" fill="none"></rect>
+                        <path d="M6 14c2-3 5-5 8-5" stroke="#062E1E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-lg font-semibold leading-5">MICDS Fitness</div>
+                    <div class="text-xs muted">Admin Dashboard</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- center search -->
+        <div class="flex-1 px-6 hidden lg:flex items-center justify-center">
+            <div class="relative w-full max-w-2xl">
+                <input id="searchBox" type="search" placeholder="Search people, classes (press Enter) — autocomplete suggestions..." class="input w-full pl-4 pr-36 py-3 rounded-xl shadow-sm" autocomplete="off" aria-autocomplete="list"/>
+
+                <!-- Autocomplete dropdown -->
+                <div id="autocomplete" class="hidden absolute left-0 right-0 mt-2 bg-white card p-2 shadow-lg border" style="border-color: rgba(6,46,30,0.04);">
+                    <div id="autoResults" class="divide-y divide-gray-100"></div>
+                    <div id="autoFooter" class="text-xs small text-right pr-2 pt-2">Press Enter to go</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- right controls -->
+        <div class="flex items-center gap-4">
+
+
+            <button class="openMessages btn-outline px-3 py-2 hidden md:inline-flex items-center gap-2" title="Open messages">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#062E1E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Messages
+            </button>
+
+            <a href="/logout" class="text-sm muted hover:underline">Logout</a>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="flex-1 p-6 md:p-10 space-y-8 relative overflow-x-hidden">
+
+        <!-- STATS (big scrolling section) -->
+        <section id="statsSection" class="card p-6">
+            <div class="flex items-start justify-between gap-6">
+                <div>
+                    <h2 class="text-xl font-semibold">System Stats</h2>
+                    <p class="muted mt-1">Quick overview of engagement, completion, and activity across the system.</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="small muted">Last updated: <span id="statsUpdated">—</span></div>
+                    <button id="refreshStats" class="btn-outline px-3 py-2">Refresh</button>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Each stat tile includes an SVG ring and two lines of text -->
+                <div class="card p-4 flex items-center gap-4">
+                    <div class="ring-wrap" aria-hidden>
+                        <svg viewBox="0 0 36 36" class="w-full h-full">
+                            <defs>
+                                <linearGradient id="gActive" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="#7EE7B6"/>
+                                    <stop offset="100%" stop-color="#0B8B5A"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                            <path id="activeArc" stroke="url(#gActive)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <div class="text-sm muted">Active Students</div>
+                        <div class="ring-label mt-1" id="activeCount">—</div>
+                        <div class="small muted mt-1">of target</div>
+                    </div>
+                </div>
+
+                <div class="card p-4 flex items-center gap-4">
+                    <div class="ring-wrap" aria-hidden>
+                        <svg viewBox="0 0 36 36">
+                            <defs>
+                                <linearGradient id="gCompletion" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="#D3F3E6"/>
+                                    <stop offset="100%" stop-color="#0B5F3F"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                            <path id="completionArc" stroke="url(#gCompletion)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <div class="text-sm muted">Completion Rate</div>
+                        <div class="ring-label mt-1" id="completionPercent">—</div>
+                        <div class="small muted mt-1">forms graded</div>
+                    </div>
+                </div>
+
+                <div class="card p-4 flex items-center gap-4">
+                    <div class="ring-wrap" aria-hidden>
+                        <svg viewBox="0 0 36 36">
+                            <defs>
+                                <linearGradient id="gParticipation" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="#FFF6E6"/>
+                                    <stop offset="100%" stop-color="#0B4A34"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                            <path id="participationArc" stroke="url(#gParticipation)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <div class="text-sm muted">Weekly Participation</div>
+                        <div class="ring-label mt-1" id="weeklyParticipation">—</div>
+                        <div class="small muted mt-1">active sessions</div>
+                    </div>
+                </div>
+
+                <div class="card p-4 flex items-center gap-4">
+                    <div class="ring-wrap" aria-hidden>
+                        <svg viewBox="0 0 36 36">
+                            <defs>
+                                <linearGradient id="gTeacherEng" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="#DFF8EE"/>
+                                    <stop offset="100%" stop-color="#006644"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                            <path id="teacherArc" stroke="url(#gTeacherEng)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <div class="text-sm muted">Teacher Engagement</div>
+                        <div class="ring-label mt-1" id="teacherEng">—</div>
+                        <div class="small muted mt-1">active instructors</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats detail area (long scrollable info) -->
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="card p-4 space-y-3">
+                    <h4 class="font-semibold">Overview</h4>
+                    <p class="small muted">Detailed system metrics and recent changes. Scroll to view trends and activity logs.</p>
+                    <div class="mt-3">
+                        <div class="text-sm muted">Goal Progress</div>
+                        <div class="w-full bg-gray-100 rounded-full h-3 mt-2 overflow-hidden">
+                            <div id="goalBar" class="h-3 rounded-full" style="width:0; background:linear-gradient(90deg,#9ee6c1,#057a4f);"></div>
+                        </div>
+                        <div class="small muted mt-2">Annual target completion</div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h4 class="font-semibold">Recent Activity</h4>
+                    <div id="recentActivity" class="mt-3 space-y-2 max-h-56 overflow-auto scrollbar-thin">
+                        <!-- placeholder items; populate server-side -->
+                        <div class="p-3 card">
+                            <div class="small muted">Nov 01, 2025 • System</div>
+                            <div class="mt-1">Created user: Jane Doe (teacher)</div>
+                        </div>
+                        <div class="p-3 card">
+                            <div class="small muted">Oct 29, 2025 • Admin</div>
+                            <div class="mt-1">Assigned student #245 to teacher #12</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h4 class="font-semibold">Engagement Breakdown</h4>
+                    <div class="mt-3 space-y-2 small muted">
+                        <div>Avg weekly active students: <span id="avgActive">—</span></div>
+                        <div>Avg forms per student: <span id="avgForms">—</span></div>
+                        <div>Avg teacher responses/day: <span id="avgResponses">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CLASSES + TOOLS ROW -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-6 lg:col-span-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Classes</h3>
+                        <p class="muted text-sm mt-1">Browse classes — paginate through cards. Use filters for targeted views.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="small muted">Sort</div>
+                        <select id="sortClasses" class="input text-sm" style="width:160px">
+                            <option value="recent">Most Recent</option>
+                            <option value="alpha">A → Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- classes grid -->
+                <div id="classesGrid" class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5 lg-grid-4">
+                    {% if classes %}
+                    {% for cls in classes|slice(0,24) %}
+                    <article class="card p-4" data-class-id="{{ cls[0] }}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h4 class="text-md font-semibold accent">{{ cls[1] }}</h4>
+                                <p class="muted text-sm mt-1">{{ cls[2] or 'No description' }}</p>
+                                <div class="mt-3 flex items-center gap-2">
+                                    <button class="btn-outline text-sm" onclick="openClass({{ cls[0] }})">Open</button>
+                                    <button class="btn-outline text-sm" onclick="editClass({{ cls[0] }})">Edit</button>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="muted text-xs">Teacher</div>
+                                <div class="font-medium mt-1">{{ cls[3] if cls|length > 3 else '—' }}</div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center p-8 muted">No classes found.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-6 flex items-center justify-between">
+                    <div class="muted text-sm">Showing <span id="classesRange">1–12</span> of <span id="classesTotal">{{ classes|length if classes is defined else 0 }}</span></div>
+                    <div class="flex items-center gap-2">
+                        <button id="prevPage" class="btn-outline px-3 py-2" disabled>Prev</button>
+                        <div class="muted text-sm">Page <span id="currentPage">1</span></div>
+                        <button id="nextPage" class="btn-outline px-3 py-2">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- right tools column -->
+            <aside class="card p-6 space-y-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-semibold">Admin Tools</h3>
+                    <div class="muted text-sm">Manage</div>
+                </div>
+
+                <div class="space-y-3">
+
+                    <button class="btn-outline w-full flex items-center justify-between" onclick="openModal('bulkModal')">
+                        Bulk Upload
+                        <span class="muted text-xs">CSV</span>
+                    </button>
+
+                    <button class="btn-outline w-full flex items-center justify-between" onclick="openModal('activityModal')">
+                        Activity Log
+                        <span class="muted text-xs">View</span>
+                    </button>
+
+                    <button class="btn-outline w-full flex items-center justify-between" onclick="openModal('notificationsModal')">
+                        Broadcast Notification
+                        <span class="muted text-xs">Alerts</span>
+                    </button>
+
+                </div>
+
+                <div class="pt-3 border-t mt-3" style="border-color: rgba(6,46,30,0.03)"></div>
+
+                <div>
+                    <h4 class="text-sm font-medium">Advanced Filters</h4>
+                    <p class="small muted mt-1">Open the filter panel to refine results by role, progress, class, and dates.</p>
+                    <div class="mt-3">
+                        <button id="openFiltersAside" class="btn-primary w-full">Open Filters</button>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- a long scrollable area to satisfy "lots of stuff" requirement -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card p-6 lg:col-span-2">
+                <h3 class="font-semibold">Detailed Insights</h3>
+                <p class="muted small mt-2">This section is intentionally long to provide detailed analytics, logs, and controls for administrators. Scroll to view more items.</p>
+
+                <div class="mt-6 space-y-6">
+                    <!-- Example: forms needing grading -->
+                    <div class="card p-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-semibold">Pending Forms</h4>
+                                <p class="muted small mt-1">Forms students have submitted but are awaiting teacher review.</p>
+                            </div>
+                            <div class="small muted">Total: <span id="pendingForms">—</span></div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- placeholders -->
+                            <div class="p-3 card">
+                                <div class="muted small">Form: Recovery Check</div>
+                                <div class="mt-1">3 submissions pending</div>
+                            </div>
+                            <div class="p-3 card">
+                                <div class="muted small">Form: Weekly Report</div>
+                                <div class="mt-1">7 submissions pending</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity / audit -->
+                    <div class="card p-4">
+                        <h4 class="font-semibold">Audit Trail</h4>
+                        <div class="mt-3 small max-h-48 overflow-auto scrollbar-thin">
+                            <div class="p-3 mb-2 card">
+                                <div class="small ">Nov 02, 2025 • Admin</div>
+                                <div class="mt-1">Updated role: student -> teacher (user: emily@micds.org)</div>
+                            </div>
+                            <div class="p-3 card">
+                                <div class="small ">Nov 01, 2025 • System</div>
+                                <div class="mt-1">Database backup completed</div>
+                            </div>
+                            <!-- more entries -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right short column: quick actions + help -->
+            <aside class="card p-6 space-y-4">
+                <h4 class="font-semibold">Quick Actions</h4>
+                <div class="space-y-3">
+                    <button class="btn-primary w-full" onclick="openModal('userMgmtModal')">Manage Users</button>
+                    <button class="btn-outline w-full" onclick="openModal('classManageModal')">Create Class</button>
+                </div>
+
+                <div class="pt-3 border-t mt-3" style="border-color: rgba(6,46,30,0.03)"></div>
+                <div>
+                    <h4 class="small muted"> <b>Need help? </b> </h4>
+                    <p class="small muted mt-1">Contact coding club or <a href="mailto:sram@micds.org" class="underline">sram@micds.org</a> for support.</p>
+
+                    <div class="w-full h-[3px] bg-gray-200 rounded-full my-6"></div>
+
+                    <h4 class="small muted"> <b>Info</b> </h4>
+                    <p class="small muted mt-1">This admin page gives staff a clean, centralized place to track school activity, manage communication, and keep things running smoothly. It shows real-time stats, progress indicators, and goal tracking, plus a built-in messaging system for quick conversations with teachers and students. Everything is laid out so admins can jump between data and messages without losing their flow.</p>
+
+                </div>
+            </aside>
+        </section>
+
+    </main>
+
+    <!-- ========================= MESSENGER MODAL ========================= -->
+    <div id="messengerModal"
+         class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-6">
+
+        <!-- Main messenger card -->
+        <div id="messenger"
+             class="relative card bg-white w-full max-w-5xl h-[85vh] shadow-2xl rounded-2xl flex flex-col overflow-hidden">
+
+            <!-- Header -->
+            <div class="p-4 border-b" style="border-color: rgba(6,46,30,0.04);">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <h3 class="font-semibold">Messages</h3>
+                        <div class="small muted">Internal chat</div>
+                    </div>
+                    <div>
+                        <button id="closeMessenger"
+                                class="btn-outline px-3 py-1"
+                                onclick="closeModal('messengerModal')">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 p-4 flex gap-4 overflow-hidden">
+
+                <!-- Left: thread list -->
+                <div class="w-1/3 border-r pr-3 overflow-y-auto"
+                     style="border-color: rgba(6,46,30,0.03);">
+
+                    <div class="mb-3">
+                        <input id="msgSearch" class="input w-full"
+                               placeholder="Search threads or people..." />
+                    </div>
+
+                    <div id="threadList" class="space-y-2">
+                        <!-- Example threads -->
+                        <button class="p-3 card w-full text-left thread-item"
+                                data-thread-id="1"
+                                onclick="openThread(1)">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Emily Johnson</div>
+                                    <div class="small muted">Teacher • 2 new</div>
+                                </div>
+                                <div class="small muted">11:23</div>
+                            </div>
+                        </button>
+
+                        <button class="p-3 card w-full text-left thread-item"
+                                data-thread-id="2"
+                                onclick="openThread(2)">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Student: Alex P.</div>
+                                    <div class="small muted">Student • 1 new</div>
+                                </div>
+                                <div class="small muted">Yesterday</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: chat section -->
+                <div class="w-2/3 flex flex-col overflow-hidden">
+
+                    <div id="chatWindow"
+                         class="flex-1 overflow-y-auto p-3 space-y-3 scroll-smooth">
+                        <div class="small muted text-center">
+                            Select a thread to view messages
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t" style="border-color: rgba(6,46,30,0.03);">
+                        <form id="sendMsgForm"
+                              class="flex items-center gap-3 p-3"
+                              onsubmit="event.preventDefault(); sendMessage();">
+                            <input id="msgTo" type="hidden" value="">
+                            <input id="msgInput" class="input flex-1" placeholder="Write a message..." />
+                            <button class="btn-primary px-4" type="submit">Send</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================= MODALS ========================= -->
+
+    <!-- Unified User Management Modal (Add / Role / Assign) -->
+    <div id="userMgmtModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6" aria-hidden>
+        <div class="absolute inset-0 bg-black/30" onclick="closeModal('userMgmtModal')"></div>
+        <div class="relative w-full max-w-3xl card p-6" role="dialog" aria-modal="true">
+            <button class="absolute top-3 right-3 text-muted" onclick="closeModal('userMgmtModal')">✕</button>
+
+            <div class="flex items-center justify-between pb-4 border-b" style="border-color: rgba(6,46,30,0.03);">
+                <h3 class="text-lg font-semibold accent">User Management</h3>
+                <div class="small muted">Add user • change role • assign students</div>
+            </div>
+
+            <div class="mt-4">
+                <div class="flex gap-4">
+                    <button class="btn-outline px-3 py-2" data-tab="add" onclick="switchUserTab('add')">Add</button>
+                    <button class="btn-outline px-3 py-2" data-tab="role" onclick="switchUserTab('role')">Role</button>
+                    <button class="btn-outline px-3 py-2" data-tab="assign" onclick="switchUserTab('assign')">Assign</button>
+                </div>
+
+                <!-- ADD -->
+                <div id="tab-add" class="mt-4">
+                    <form id="addUserForm" onsubmit="event.preventDefault(); addUserUnified();">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input id="u_name" class="input" placeholder="Full name" required />
+                            <input id="u_email" type="email" class="input" placeholder="email@micds.org" required />
+                            <select id="u_role" class="input">
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <input id="u_password" class="input" placeholder="Set temporary password (optional)" />
+                        </div>
+                        <div class="mt-4 flex items-center gap-3">
+                            <button class="btn-primary">Create</button>
+                            <button type="button" class="btn-outline" onclick="switchUserTab('role')">Next: Role</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ROLE -->
+                <div id="tab-role" class="mt-4 hidden">
+                    <form id="changeRoleForm" onsubmit="event.preventDefault(); changeRoleUnified();">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input id="role_email" class="input" placeholder="User email" required />
+                            <select id="role_new" class="input">
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mt-4 flex items-center gap-3">
+                            <button class="btn-primary">Update Role</button>
+                            <button type="button" class="btn-outline" onclick="switchUserTab('assign')">Next: Assign</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ASSIGN -->
+                <div id="tab-assign" class="mt-4 hidden">
+                    <form id="assignFormUnified" onsubmit="event.preventDefault(); assignUnified();">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input id="assign_teacher" class="input" placeholder="Teacher ID or email" required />
+                            <input id="assign_student" class="input" placeholder="Student ID or email" required />
+                            <input id="assign_class" class="input" placeholder="Class ID (optional)" />
+                        </div>
+                        <div class="mt-4 flex items-center gap-3">
+                            <button class="btn-primary">Assign</button>
+                            <button type="button" class="btn-outline" onclick="closeModal('userMgmtModal')">Done</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div id="bulkModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/30" onclick="closeModal('bulkModal')"></div>
+        <div class="relative w-full max-w-2xl card p-6">
+            <button class="absolute top-3 right-3 text-muted" onclick="closeModal('bulkModal')">✕</button>
+            <h3 class="text-lg font-semibold accent">Bulk Upload (CSV)</h3>
+            <p class="muted small mt-1">Upload users, classes, or grades. CSV should include header row. We'll validate first.</p>
+
+            <form id="bulkForm" class="mt-4" onsubmit="event.preventDefault(); bulkUpload();">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <select id="bulkType" class="input">
+                        <option value="users">Users (name,email,role)</option>
+                        <option value="classes">Classes (teacher_id,name,description)</option>
+                        <option value="grades">Grades (student_id,form_id,grade)</option>
+                    </select>
+                    <input id="bulkFile" type="file" accept=".csv" class="input"/>
+                </div>
+
+                <div class="mt-4 flex items-center gap-3">
+                    <button class="btn-primary">Upload</button>
+                    <button type="button" class="btn-outline" onclick="closeModal('bulkModal')">Cancel</button>
+                </div>
+
+                <div id="bulkOutput" class="mt-3 small muted"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/30" onclick="closeModal('activityModal')"></div>
+        <div class="relative w-full max-w-3xl card p-6">
+            <button class="absolute top-3 right-3 text-muted" onclick="closeModal('activityModal')">✕</button>
+            <h3 class="text-lg font-semibold accent">Activity Log</h3>
+            <div id="activityList" class="mt-4 space-y-2 max-h-72 overflow-auto small muted scrollbar-thin">
+                <!-- populate from server -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/30" onclick="closeModal('notificationsModal')"></div>
+        <div class="relative w-full max-w-md card p-6">
+            <button class="absolute top-3 right-3 text-muted" onclick="closeModal('notificationsModal')">✕</button>
+            <h3 class="text-lg font-semibold accent">Broadcast Notification</h3>
+            <form id="notifForm" onsubmit="event.preventDefault(); sendNotification();">
+                <input id="notifTitle" class="input w-full mt-2" placeholder="Short title" />
+                <textarea id="notifMessage" class="input w-full mt-2" rows="4" placeholder="Message to users"></textarea>
+                <div class="mt-4 flex items-center gap-3">
+                    <button class="btn-primary">Send</button>
+                    <button class="btn-outline" onclick="closeModal('notificationsModal')" type="button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Class Management Modal (simple) -->
+    <div id="classManageModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/30" onclick="closeModal('classManageModal')"></div>
+        <div class="relative w-full max-w-md card p-6">
+            <button class="absolute top-3 right-3 text-muted" onclick="closeModal('classManageModal')">✕</button>
+            <h3 class="text-lg font-semibold accent">Create Class</h3>
+            <form id="classForm" onsubmit="event.preventDefault(); createClass();">
+                <input id="className" class="input w-full mt-2" placeholder="Class name" required/>
+                <textarea id="classDesc" class="input w-full mt-2" rows="3" placeholder="Short description"></textarea>
+                <input id="classTeacher" class="input w-full mt-2" placeholder="Teacher ID or email" />
+                <div class="mt-4 flex items-center gap-3">
+                    <button class="btn-primary">Create</button>
+                    <button class="btn-outline" onclick="closeModal('classManageModal')" type="button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================= SCRIPTS ========================= -->
+    <script type="module" src="/static/admin.js"></script>
+</body>
+</html>

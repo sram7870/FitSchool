@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Teacher • MICDS Fitness — Teacher Dashboard</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- GSAP + Motion One -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.16.2/dist/motion.umd.js"></script>
+
+    <style>
+        :root{
+            --offwhite: #F8F0E3;     /* preferred off-white */
+            --dark-green: #062E1E;   /* very dark green accent */
+            --muted: #6b6b64;
+            --card: #ffffff;
+            --glass: rgba(255,255,255,0.6);
+        }
+
+        html, body { height:100%; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            -webkit-font-smoothing:antialiased;
+            background: linear-gradient(180deg, var(--offwhite) 0%, #fbf7f1 100%);
+            color: #0b1b17;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+
+        /* CARD */
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(8,12,10,0.06);
+            transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+            border: 1px solid rgba(6,46,30,0.04);
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(6,46,30,0.09); }
+
+        /* accent text */
+        .accent { color: var(--dark-green); }
+        .pill {
+            background: linear-gradient(180deg, rgba(6,46,30,0.03), rgba(6,46,30,0.01));
+            color: var(--dark-green);
+            border: 1px solid rgba(6,46,30,0.06);
+        }
+
+        /* buttons */
+        .btn-primary {
+            background: linear-gradient(180deg, #0d1b17, #0a1512);
+            color: #fff;
+            padding: .6rem .9rem;
+            border-radius: .6rem;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(8,12,10,0.12);
+            transition: transform .18s ease, box-shadow .18s ease;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(8,12,10,0.18); }
+
+        .btn-outline {
+            background: transparent;
+            padding: .55rem .85rem;
+            border-radius: .6rem;
+            border: 1px solid rgba(6,46,30,0.12);
+            color: var(--dark-green);
+            font-weight: 600;
+            transition: all .16s ease;
+        }
+        .btn-outline:hover { background: rgba(6,46,30,0.03); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(6,46,30,0.06); }
+
+        /* inputs */
+        .input {
+            background: rgba(240,240,236,0.95);
+            border-radius: .6rem;
+            border: 1px solid rgba(6,46,30,0.06);
+            padding: .6rem .8rem;
+            outline: none;
+            transition: box-shadow .12s;
+        }
+        .input:focus { box-shadow: 0 8px 20px rgba(6,46,30,0.06); }
+
+        .muted { color: var(--muted); font-size:.93rem; }
+        .small { font-size:.85rem; color:var(--muted); }
+
+        /* stats ring visuals */
+        .ring-wrap { width: 84px; height: 84px; display:inline-block; }
+        .ring-label { font-weight:700; font-size:1.05rem; color: #07120f; }
+
+        /* messenger (hidden by default) */
+        .messenger {
+            width: 420px;
+            max-width: calc(100% - 32px);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            z-index: 80;
+            transform: translateX(100%);
+        }
+
+        /* left filter panel */
+        .filter-panel {
+            width: 360px;
+            max-width: calc(100% - 32px);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 70;
+            transform: translateX(-100%);
+        }
+
+        /* responsive grid helper */
+        @media (min-width: 1024px) {
+            .lg-grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+        }
+
+        /* subtle scrollbar for panels */
+        .scrollbar-thin::-webkit-scrollbar { height:8px; width:8px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 8px; }
+
+        /* small animations */
+        .fade-in { opacity: 0; transform: translateY(8px); }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+<!-- TOP NAV -->
+<nav class="w-full backdrop-blur-sm px-6 md:px-10 py-4 flex items-center justify-between sticky top-0 z-50"
+     style="background: linear-gradient(180deg, rgba(248,240,227,0.86), rgba(248,240,227,0.70)); border-bottom: 1px solid rgba(6,46,30,0.03);">
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl card flex items-center justify-center" style="background:linear-gradient(180deg, rgba(255,255,255,0.7), rgba(248,240,227,0.45));">
+                <!-- logo -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="opacity-95">
+                    <rect x="2" y="2" width="20" height="20" rx="5" stroke="rgba(6,46,30,0.12)" stroke-width="1.4" fill="none"></rect>
+                    <path d="M6 14c2-3 5-5 8-5" stroke="#062E1E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div>
+                <div class="text-lg font-semibold">Teacher Dashboard</div>
+                <div class="text-xs muted">MICDS Fitness • Teacher Tools</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- center search -->
+    <div class="flex-1 px-6 hidden lg:flex items-center justify-center">
+        <div class="relative w-full max-w-2xl">
+            <input id="searchBox" type="search" placeholder="Search students or teachers (press Enter)" class="input w-full pl-4 pr-36 py-3 rounded-xl shadow-sm" autocomplete="off" aria-autocomplete="list"/>
+
+            <!-- Autocomplete dropdown -->
+            <div id="autocomplete" class="hidden absolute left-0 right-0 mt-2 bg-white card p-2 shadow-lg border" style="border-color: rgba(6,46,30,0.04);">
+                <div id="autoResults" class="divide-y divide-gray-100"></div>
+                <div id="autoFooter" class="text-xs small text-right pr-2 pt-2">Press Enter to go</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- right controls -->
+    <div class="flex items-center gap-4">
+
+
+        <button id="openMessagesBtn" class="openMessages btn-outline px-3 py-2 hidden md:inline-flex items-center gap-2" title="Open messages">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#062E1E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Messages
+        </button>
+
+        <a href="/logout" class="text-sm muted hover:underline">Logout</a>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<main class="flex-1 p-6 md:p-10 space-y-8 relative overflow-x-hidden">
+
+    <!-- STATS (big scrolling section) -->
+    <section id="statsSection" class="card p-6">
+        <div class="flex items-start justify-between gap-6">
+            <div>
+                <h2 class="text-xl font-semibold">Class & Student Stats</h2>
+                <p class="muted mt-1">Overview of your classes, submissions, and student achievements.</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="small muted">Last updated: <span id="statsUpdated">—</span></div>
+                <button id="refreshStats" class="btn-outline px-3 py-2">Refresh</button>
+            </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Each stat tile includes an SVG ring and two lines of text -->
+            <div class="card p-4 flex items-center gap-4">
+                <div class="ring-wrap" aria-hidden>
+                    <svg viewBox="0 0 36 36" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="gActiveT" x1="0" x2="1">
+                                <stop offset="0%" stop-color="#7EE7B6"/>
+                                <stop offset="100%" stop-color="#0B8B5A"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                        <path id="activeArcT" stroke="url(#gActiveT)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <div class="text-sm muted">Students (active)</div>
+                    <div class="ring-label mt-1" id="activeCount">—</div>
+                    <div class="small muted mt-1">in your classes</div>
+                </div>
+            </div>
+
+            <div class="card p-4 flex items-center gap-4">
+                <div class="ring-wrap" aria-hidden>
+                    <svg viewBox="0 0 36 36">
+                        <defs>
+                            <linearGradient id="gCompletionT" x1="0" x2="1">
+                                <stop offset="0%" stop-color="#D3F3E6"/>
+                                <stop offset="100%" stop-color="#0B5F3F"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                        <path id="completionArcT" stroke="url(#gCompletionT)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <div class="text-sm muted">Forms to Grade</div>
+                    <div class="ring-label mt-1" id="formsToGrade">—</div>
+                    <div class="small muted mt-1">pending</div>
+                </div>
+            </div>
+
+            <div class="card p-4 flex items-center gap-4">
+                <div class="ring-wrap" aria-hidden>
+                    <svg viewBox="0 0 36 36">
+                        <defs>
+                            <linearGradient id="gParticipationT" x1="0" x2="1">
+                                <stop offset="0%" stop-color="#FFF6E6"/>
+                                <stop offset="100%" stop-color="#0B4A34"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                        <path id="participationArcT" stroke="url(#gParticipationT)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <div class="text-sm muted">Weekly Participation</div>
+                    <div class="ring-label mt-1" id="weeklyParticipation">—</div>
+                    <div class="small muted mt-1">active sessions</div>
+                </div>
+            </div>
+
+            <div class="card p-4 flex items-center gap-4">
+                <div class="ring-wrap" aria-hidden>
+                    <svg viewBox="0 0 36 36">
+                        <defs>
+                            <linearGradient id="gTeacherEngT" x1="0" x2="1">
+                                <stop offset="0%" stop-color="#DFF8EE"/>
+                                <stop offset="100%" stop-color="#006644"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="18" cy="18" r="15.91549430918954" fill="none" stroke="#ecf0eb" stroke-width="4"></circle>
+                        <path id="teacherArcT" stroke="url(#gTeacherEngT)" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <div class="text-sm muted">Avg Rating</div>
+                    <div class="ring-label mt-1" id="avgRating">—</div>
+                    <div class="small muted mt-1">from form reviews</div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- CLASSES + TOOLS ROW -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="card p-6 lg:col-span-2">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">Your Classes</h3>
+                    <p class="muted text-sm mt-1">Manage classes, assign forms, and add achievements quickly.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="small muted">Sort</div>
+                    <select id="sortClasses" class="input text-sm" style="width:160px">
+                        <option value="recent">Most Recent</option>
+                        <option value="alpha">A → Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- classes grid -->
+            <div id="classesGrid" class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5 lg-grid-4">
+                <!-- Example static cards — replace server-side or via JS -->
+                <article class="card p-4" data-class-id="101">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h4 class="text-md font-semibold accent">Resistance Training • 9th</h4>
+                            <p class="muted text-sm mt-1">Intro to strength & movement.</p>
+                            <div class="mt-3 flex items-center gap-2">
+                                <button class="btn-outline text-sm" onclick="openClass(101)">Open</button>
+                                <button class="btn-outline text-sm" onclick="openAssignFormModal(101)">Assign Form</button>
+                                <button class="btn-outline text-sm" onclick="openAddAchievementModal(101)">Add Achievement</button>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="muted text-xs">Students</div>
+                            <div class="font-medium mt-1">24</div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card p-4" data-class-id="102">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h4 class="text-md font-semibold accent">Cardio Conditioning • 10th</h4>
+                            <p class="muted text-sm mt-1">Heart-rate zones and pacing.</p>
+                            <div class="mt-3 flex items-center gap-2">
+                                <button class="btn-outline text-sm" onclick="openClass(102)">Open</button>
+                                <button class="btn-outline text-sm" onclick="openAssignFormModal(102)">Assign Form</button>
+                                <button class="btn-outline text-sm" onclick="openAddAchievementModal(102)">Add Achievement</button>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="muted text-xs">Students</div>
+                            <div class="font-medium mt-1">18</div>
+                            <div class="mt-2">
+                                <span class="pill px-2 py-1 rounded-full text-xs">5 pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-6 flex items-center justify-between">
+                <div class="muted text-sm">Showing <span id="classesRange">1–6</span> of <span id="classesTotal">8</span></div>
+                <div class="flex items-center gap-2">
+                    <button id="prevPage" class="btn-outline px-3 py-2" disabled>Prev</button>
+                    <div class="muted text-sm">Page <span id="currentPage">1</span></div>
+                    <button id="nextPage" class="btn-outline px-3 py-2">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- right tools column -->
+        <aside class="card p-6 space-y-8">
+            <div class="flex items-center justify-between">
+                <h3 class="font-semibold">Teacher Tools</h3>
+                <div class="muted text-sm">Quick actions</div>
+            </div>
+
+            <div class="space-y-3">
+
+                <button class="btn-outline w-full flex items-center justify-between" onclick="openAssignFormModal()">
+                    Assign New Form
+                    <span class="muted text-xs">Create → Assign</span>
+                </button>
+
+                <button class="btn-outline w-full flex items-center justify-between" onclick="openPendingResponses()">
+                    View Pending Responses
+                    <span class="muted text-xs">Review</span>
+                </button>
+
+                <button class="btn-outline w-full flex items-center justify-between" onclick="openAddStatsModal()">
+                    Add Student Stats
+                    <span class="muted text-xs">Quick add</span>
+                </button>
+
+            </div>
+
+            <div class="pt-3 border-t mt-3" style="border-color: rgba(6,46,30,0.03)"></div>
+
+            <div>
+                <h4 class="text-sm font-medium">Advanced Filters</h4>
+                <p class="small muted mt-1">Refine by class, student progress, date, or form type.</p>
+                <div class="mt-3">
+                    <button id="openFiltersAside" class="btn-primary w-full">Open Filters</button>
+                </div>
+            </div>
+        </aside>
+    </section>
+
+    <!-- ACTIVE FORMS & SUBMISSIONS -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="card p-6 lg:col-span-2">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">Active Forms & Submissions</h3>
+                    <p class="muted text-sm mt-1">See which forms are live and review pending student responses.</p>
+                </div>
+                <div class="small muted">Total pending: <span id="pendingTotal">—</span></div>
+            </div>
+
+            <div class="mt-4 space-y-4 max-h-96 overflow-auto scrollbar-thin">
+                <!-- Example form card -->
+                <div class="card p-3 flex items-start justify-between">
+                    <div>
+                        <div class="small muted">Form • Weekly Reflection</div>
+                        <div class="font-medium mt-1">How did you feel this week?</div>
+                        <div class="small muted mt-2">Assigned to: Cardio Conditioning • due Nov 12</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="small muted">Pending</div>
+                        <div class="mt-2 flex gap-2">
+                            <button class="btn-outline text-sm" onclick="openSubmissions(201)">View (3)</button>
+                            <button class="btn-primary text-sm" onclick="openGradeModal(201)">Grade</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3 flex items-start justify-between">
+                    <div>
+                        <div class="small muted">Form • Recovery Check</div>
+                        <div class="font-medium mt-1">Post-activity recovery status</div>
+                        <div class="small muted mt-2">Assigned to: Resistance Training • due Nov 10</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="small muted">Pending</div>
+                        <div class="mt-2 flex gap-2">
+                            <button class="btn-outline text-sm" onclick="openSubmissions(202)">View (2)</button>
+                            <button class="btn-primary text-sm" onclick="openGradeModal(202)">Grade</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Student Achievements panel -->
+        <aside class="card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h4 class="font-semibold">Student Achievements</h4>
+                <div class="small muted">Quick add</div>
+            </div>
+
+            <form id="quickAchievementForm" onsubmit="event.preventDefault(); quickAddAchievement();">
+                <input id="qa_student" class="input w-full mt-2" placeholder="Student name or ID" required />
+                <input id="qa_title" class="input w-full mt-2" placeholder="Achievement title" required />
+                <input id="qa_date" type="date" class="input w-full mt-2" />
+                <textarea id="qa_desc" class="input w-full mt-2" rows="3" placeholder="Short description"></textarea>
+
+                <div class="mt-3 flex gap-2">
+                    <button class="btn-primary flex-1">Add</button>
+                    <button class="btn-outline" type="button" onclick="openAddAchievementModal()">Advanced</button>
+                </div>
+            </form>
+
+            <div class="pt-3 border-t mt-3" style="border-color: rgba(6,46,30,0.03)"></div>
+            <div class="small muted">Recent achievements will appear here when added.</div>
+        </aside>
+    </section>
+
+    <!-- a long scrollable area to satisfy "lots of stuff" requirement -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="card p-6 lg:col-span-2">
+            <h3 class="font-semibold">Detailed Insights & Logs</h3>
+            <p class="muted small mt-2">Scroll for student timelines, form history, and grading logs.</p>
+
+            <div class="mt-6 space-y-6">
+                <div class="card p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h4 class="font-semibold">Pending Submissions</h4>
+                            <p class="muted small mt-1">Click an item to grade and leave comments (1–4 + notes).</p>
+                        </div>
+                        <div class="small muted">Total: <span id="pendingForms">—</span></div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-3 card">
+                            <div class="muted small">Student: Alex P.</div>
+                            <div class="mt-1">Form: Weekly Reflection — submitted Nov 08</div>
+                            <div class="mt-3 flex gap-2"><button class="btn-outline" onclick="openGradeModal(301)">Open</button></div>
+                        </div>
+
+                        <div class="p-3 card">
+                            <div class="muted small">Student: Maria K.</div>
+                            <div class="mt-1">Form: Recovery Check — submitted Nov 07</div>
+                            <div class="mt-3 flex gap-2"><button class="btn-outline" onclick="openGradeModal(302)">Open</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity / audit -->
+                <div class="card p-4">
+                    <h4 class="font-semibold">Teacher Notes</h4>
+                    <div class="mt-3 small muted max-h-48 overflow-auto scrollbar-thin">
+                        <div class="p-3 mb-2 card">
+                            <div class="small">Nov 02, 2025 • You</div>
+                            <div class="mt-1">Left feedback for Alex P. on recovery plan.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right short column: quick actions + help -->
+        <aside class="card p-6 space-y-4">
+            <h4 class="font-semibold">Cool Stuff :)</h4>
+            <!-- MOTIVATION MINI GRAPH -->
+            <div class="card p-5">
+                <h3 class="text-md font-semibold accent">Weekly Engagement</h3>
+                <p class="muted text-sm mt-1">A quick look at your classes’ momentum.</p>
+
+                <div class="mt-4">
+                    <canvas id="motivationChart" height="120"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <script>
+                const ctx = document.getElementById('motivationChart');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon','Tue','Wed','Thu','Fri'],
+                        datasets: [{
+                            data: [62, 68, 71, 77, 82],   // feel free to swap these
+                            borderWidth: 3,
+                            tension: 0.42,
+                            fill: true,
+                            backgroundColor: 'rgba(6,46,30,0.09)',
+                            borderColor: 'rgba(6,46,30,0.85)',
+                            pointRadius: 0,
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: {
+                                ticks: { color: '#6b6b64', font: { size: 12 } },
+                                grid: { display: false }
+                            },
+                            y: {
+                                ticks: { color: '#6b6b64', font: { size: 12 } },
+                                grid: { color: 'rgba(6,46,30,0.05)' },
+                                suggestedMin: 50,
+                                suggestedMax: 100
+                            }
+                        }
+                    }
+                });
+            </script>
+
+            <div class="pt-3 border-t mt-3" style="border-color: rgba(6,46,30,0.03)"></div>
+            <div>
+                <h4 class="small muted">Need help?</h4>
+                <p class="small muted mt-1">Contact tech: <a href="mailto:sram@micds.org" class="underline">sram@micds.org</a></p>
+
+                <div class="w-full h-[3px] bg-gray-200 rounded-full my-6"></div>
+
+                <h4 class="small muted"><b>Info</b></h4>
+                <p class="small muted mt-1">This teacher dashboard mirrors admin styles but adds quick workflows for assigning forms, grading, and tracking student achievements. Use the messenger to contact students or other teachers directly.</p>
+
+            </div>
+        </aside>
+    </section>
+
+</main>
+
+<!-- ========================= MESSENGER MODAL (reused) ========================= -->
+<div id="messengerModal" class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-6">
+
+    <!-- Main messenger card -->
+    <div id="messenger" class="relative card bg-white w-full max-w-5xl h-[85vh] shadow-2xl rounded-2xl flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <div class="p-4 border-b" style="border-color: rgba(6,46,30,0.04);">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h3 class="font-semibold">Messages</h3>
+                    <div class="small muted">Internal chat</div>
+                </div>
+                <div>
+                    <button id="closeMessenger" class="btn-outline px-3 py-1" onclick="closeModal('messengerModal')">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 p-4 flex gap-4 overflow-hidden">
+
+            <!-- Left: thread list -->
+            <div class="w-1/3 border-r pr-3 overflow-y-auto" style="border-color: rgba(6,46,30,0.03);">
+
+                <div class="mb-3">
+                    <input id="msgSearch" class="input w-full" placeholder="Search threads or people..." />
+                </div>
+
+                <div id="threadList" class="space-y-2"></div>
+            </div>
+
+            <!-- Right: chat section -->
+            <div class="w-2/3 flex flex-col overflow-hidden">
+
+                <div id="chatWindow" class="flex-1 overflow-y-auto p-3 space-y-3 scroll-smooth">
+                    <div class="small muted text-center">Select a thread to view messages</div>
+                </div>
+
+                <div class="pt-3 border-t" style="border-color: rgba(6,46,30,0.03);">
+                    <form id="sendMsgForm" class="flex items-center gap-3 p-3" onsubmit="event.preventDefault(); sendMessage();">
+                        <input id="msgTo" type="hidden" value="">
+                        <input id="msgInput" class="input flex-1" placeholder="Write a message..." />
+                        <button class="btn-primary px-4" type="submit">Send</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================= MODALS SPECIFIC TO TEACHER WORKFLOWS ========================= -->
+
+<!-- Assign Form Modal -->
+<div id="assignFormModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('assignFormModal')"></div>
+    <div class="relative w-full max-w-3xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('assignFormModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Assign Form to Class</h3>
+        <form id="assignForm" onsubmit="event.preventDefault(); submitAssignForm();">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <select id="af_class" class="input">
+                    <!-- populate classes via JS -->
+                </select>
+                <input id="af_title" class="input" placeholder="Form title (e.g. Weekly Reflection)" required />
+                <textarea id="af_prompt" class="input md:col-span-2" rows="4" placeholder="Question prompt or instructions"></textarea>
+                <input id="af_due" type="date" class="input" />
+            </div>
+            <div class="mt-4 flex items-center gap-3">
+                <button class="btn-primary">Assign</button>
+                <button class="btn-outline" onclick="closeModal('assignFormModal')" type="button">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Achievement Modal -->
+<div id="addAchievementModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('addAchievementModal')"></div>
+    <div class="relative w-full max-w-2xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('addAchievementModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Add Achievement</h3>
+        <form id="addAchievementForm" onsubmit="event.preventDefault(); submitAchievement();">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <input id="ach_student" class="input" placeholder="Student name or ID" required />
+                <input id="ach_title" class="input" placeholder="Title" required />
+                <input id="ach_date" type="date" class="input" />
+                <textarea id="ach_desc" class="input md:col-span-2" rows="4" placeholder="Description"></textarea>
+            </div>
+            <div class="mt-4 flex items-center gap-3">
+                <button class="btn-primary">Add Achievement</button>
+                <button class="btn-outline" onclick="closeModal('addAchievementModal')" type="button">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Grade Response Modal -->
+<div id="gradeModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('gradeModal')"></div>
+    <div class="relative w-full max-w-2xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('gradeModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Grade Submission</h3>
+        <div id="gradeContent" class="mt-4">
+            <!-- populated by JS: student response, timestamp, etc. -->
+            <div class="small muted">Student: <span id="gradeStudent">—</span></div>
+            <div class="mt-2 card p-3">
+                <div id="gradeResponseText" class="small">—</div>
+            </div>
+
+            <form id="gradeForm" onsubmit="event.preventDefault(); submitGrade();">
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                    <label class="small muted">Rating (1 - 4)</label>
+                    <select id="gradeValue" class="input md:col-span-3">
+                        <option value="1">1 — Needs improvement</option>
+                        <option value="2">2 — Fair</option>
+                        <option value="3">3 — Good</option>
+                        <option value="4">4 — Excellent</option>
+                    </select>
+                </div>
+                <textarea id="gradeComment" class="input w-full mt-3" rows="3" placeholder="Optional comment"></textarea>
+                <div class="mt-4 flex items-center gap-3">
+                    <button class="btn-primary">Save Grade</button>
+                    <button class="btn-outline" onclick="closeModal('gradeModal')" type="button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Stats Modal -->
+<div id="addStatsModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('addStatsModal')"></div>
+    <div class="relative w-full max-w-2xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('addStatsModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Add / Update Student Stats</h3>
+        <form id="addStatsForm" onsubmit="event.preventDefault(); submitStats();">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <input id="stat_student" class="input" placeholder="Student name or ID" required />
+                <input id="stat_metric" class="input" placeholder="Metric (e.g. VO2, pushups)" required />
+                <input id="stat_value" class="input" placeholder="Value" required />
+                <input id="stat_date" type="date" class="input" />
+            </div>
+            <div class="mt-4 flex items-center gap-3">
+                <button class="btn-primary">Save</button>
+                <button class="btn-outline" onclick="closeModal('addStatsModal')" type="button">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================= SCRIPTS & TODOs ========================= -->
+<!--
+    TODO: Implement the following JS (not included here) as /static/teacher_dashboard.js:
+     - search autocomplete and keyboard behavior (same as admin)
+     - classes pagination, openClass(), editClass()
+     - openAssignFormModal(classId) -> populate class select
+     - submitAssignForm() -> POST to backend
+     - openAddAchievementModal(classId?) and submitAchievement()
+     - quickAddAchievement() for sidebar quick form
+     - openSubmissions(formId) and openGradeModal(submissionId)
+     - submitGrade() to save rating + comment
+     - openPendingResponses() listing
+     - openAddStatsModal() and submitStats()
+     - messenger thread loading, openThread(), sendMessage()
+     - stats refresh, draw arcs for rings
+     - filters aside open/close
+     - modal helpers: openModal(id), closeModal(id)
+     - file upload handling for any CSVs
+
+    When you ask, I'll generate the backend Flask routes and the JS file(s).
+-->
+
+<script type="module" src="/static/teacher.js"></script>
+</body>
+</html>

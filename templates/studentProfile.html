@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Profile • MICDS Fitness — Public Profile (Multi-page)</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.16.2/dist/motion.umd.js"></script>
+
+    <style>
+        :root{ --offwhite:#F8F0E3; --dark-green:#062E1E; --muted:#6b6b64; --card:#fff; }
+        html,body{height:100%}
+        body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial; background:linear-gradient(180deg,var(--offwhite) 0%, #fbf7f1 100%); color:#0b1b17}
+        .card{background:var(--card); border-radius:14px; box-shadow:0 10px 30px rgba(8,12,10,0.06); border:1px solid rgba(6,46,30,0.04); transition:transform .28s, box-shadow .28s}
+        .card:hover{transform:translateY(-6px)}
+        .accent{color:var(--dark-green)} .pill{padding:.25rem .6rem; border-radius:999px; background:linear-gradient(180deg, rgba(6,46,30,0.03), rgba(6,46,30,0.01)); color:var(--dark-green)}
+        .btn-primary{background:linear-gradient(180deg,#0d1b17,#0a1512); color:#fff; padding:.6rem .9rem; border-radius:.6rem; font-weight:600}
+        .btn-outline{background:transparent; padding:.55rem .85rem; border-radius:.6rem; border:1px solid rgba(6,46,30,0.12); color:var(--dark-green); font-weight:600}
+        .input{background:rgba(240,240,236,0.95); border-radius:.6rem; border:1px solid rgba(6,46,30,0.06); padding:.6rem .8rem}
+        .muted{color:var(--muted)} .small{font-size:.85rem}
+        .avatar{width:112px; height:112px; border-radius:16px; object-fit:cover; border:1px solid rgba(6,46,30,0.06)}
+        .tab{cursor:pointer; padding:.6rem 1rem; border-radius:.6rem; font-weight:600}
+        .tab.active{background:linear-gradient(180deg, rgba(6,46,30,0.08), rgba(6,46,30,0.03)); color:var(--dark-green)}
+        @media(min-width:1024px){.lg-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+        .scrollbar-thin::-webkit-scrollbar{height:8px;width:8px} .scrollbar-thin::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:8px}
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<nav class="w-full backdrop-blur-sm px-6 md:px-10 py-4 flex items-center justify-between sticky top-0 z-50" style="background: linear-gradient(180deg, rgba(248,240,227,0.86), rgba(248,240,227,0.70)); border-bottom: 1px solid rgba(6,46,30,0.03);">
+    <div class="flex items-center gap-4">
+        <div class="w-11 h-11 rounded-xl card flex items-center justify-center" style="background:linear-gradient(180deg, rgba(255,255,255,0.7), rgba(248,240,227,0.45));">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="rgba(6,46,30,0.12)" stroke-width="1.4" fill="none"></rect><path d="M6 14c2-3 5-5 8-5" stroke="#062E1E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+            <div class="text-lg font-semibold">Public Profile</div>
+            <div class="text-xs muted">MICDS Fitness • Profile View</div>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <button class="btn-outline" id="shareProfile">Share</button>
+        <a href="/" class="text-sm muted hover:underline">Back</a>
+    </div>
+</nav>
+
+<!-- Subnav / pages -->
+<div class="w-full bg-transparent border-b" style="border-color: rgba(6,46,30,0.03);">
+    <div class="max-w-6xl mx-auto px-6 md:px-10 py-3 flex items-center gap-4">
+        <div id="tabOverview" class="tab active" data-target="pageOverview">Overview</div>
+        <div id="tabStats" class="tab" data-target="pageStats">Statistics</div>
+        <div id="tabAI" class="tab" data-target="pageAI">AI Insights</div>
+        <div id="tabActivity" class="tab" data-target="pageActivity">Activity</div>
+        <div id="tabBadges" class="tab" data-target="pageBadges">Badges</div>
+        <div class="ml-auto small muted">Profile visibility: <span id="visibilityLabel">Public</span></div>
+    </div>
+</div>
+
+<main class="flex-1 p-6 md:p-10 max-w-7xl mx-auto space-y-6">
+
+    <!-- PAGE: Overview -->
+    <section id="pageOverview" class="page card p-6">
+        <div class="flex flex-col md:flex-row items-start gap-6">
+            <img id="profilePic" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop&crop=faces" alt="Profile" class="avatar" />
+
+            <div class="flex-1">
+                <div class="flex items-start gap-4">
+                    <div>
+                        <h1 id="displayName" class="text-2xl font-bold">—</h1>
+                        <div class="muted small" id="classYear">Class of —</div>
+                        <div class="mt-2 flex items-center gap-2">
+                            <div class="pill" id="badgeCredits">0 credits</div>
+                            <div class="pill" id="badgeBadges">0 badges</div>
+                            <div class="small muted">Last active: <span id="lastActive">—</span></div>
+                        </div>
+                    </div>
+                    <div class="ml-auto flex items-center gap-2">
+                        <button id="followBtn" class="btn-primary">Follow</button>
+                        <button id="messageBtn" class="btn-outline">Message</button>
+                        <div class="relative">
+                            <button id="moreBtn" class="btn-outline">•••</button>
+                            <div id="moreMenu" class="hidden absolute right-0 mt-2 card p-2 w-44">
+                                <div class="small muted"><button class="w-full text-left" onclick="openModal('reportModal')">Report profile</button></div>
+                                <div class="small muted mt-2"><button class="w-full text-left" onclick="openModal('editProfileModal')">Request edit</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="muted small mt-4" id="profileSummary">Public profile summary — add a brief intro here.</p>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="card p-3 small muted">
+                        <div class="font-semibold">Sports</div>
+                        <div id="profileSportsList" class="mt-2">—</div>
+                    </div>
+                    <div class="card p-3 small muted">
+                        <div class="font-semibold">Achievements</div>
+                        <div id="profileAchievementsList" class="mt-2">—</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card p-3 small muted">
+                        <div class="font-semibold">Followers</div>
+                        <div id="followersList" class="mt-2">—</div>
+                    </div>
+                    <div class="card p-3 small muted">
+                        <div class="font-semibold">Following</div>
+                        <div id="followingList" class="mt-2">—</div>
+                    </div>
+                    <div class="card p-3 small muted">
+                        <div class="font-semibold">Quick actions</div>
+                        <div class="mt-2 flex gap-2"><button class="btn-outline" onclick="openModal('endorseModal')">Endorse</button><button class="btn-outline" onclick="openModal('compareModal')">Compare</button></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- PAGE: Statistics -->
+    <section id="pageStats" class="page hidden">
+        <div class="grid grid-cols-2 lg-grid-8 gap-6">
+            <div class="card p-4">
+                <h4 class="font-semibold">Performance Statistics</h4>
+                <p class="small muted mt-1">Key performance indicators for this athlete.</p>
+                <div class="mt-3 grid grid-cols-5 gap-2 small muted">
+                    <div>Vertical Jump<div class="font-medium"><span id="p_vjump">—</span> cm</div></div>
+                    <div>Broad Jump<div class="font-medium"><span id="p_broad">—</span> cm</div></div>
+                    <div>Hang Clean<div class="font-medium"><span id="p_hangclean">—</span> kg</div></div>
+                    <div>Bench<div class="font-medium"><span id="p_bench">—</span> kg</div></div>
+                    <div>Max Sprint<div class="font-medium"><span id="p_maxsprint">—</span> m/s</div></div>
+                    <div>Consistency<div class="font-medium"><span id="p_consistency">—</span> %</div></div>
+                </div>
+                <div class="mt-3 small muted">Last test: <span id="lastTest">—</span></div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="font-semibold">Recent Progress</h4>
+                <canvas id="profileProgressChart" height="160"></canvas>
+                <div class="mt-3 flex items-center gap-2 small muted"><button id="downloadProfileStats" class="btn-outline">Download CSV</button><button id="compareProfileBtn" class="btn-outline">Compare cohort</button></div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="font-semibold">Detailed Table</h4>
+                <div class="mt-2 overflow-auto"><table class="compact small" id="perfTable"><thead><tr><th>Metric</th><th>Value</th><th>Last test</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <div class="mt-6 card p-4">
+            <h4 class="font-semibold">Video / Technique Analysis</h4>
+            <p class="small muted mt-1">Upload short clips to run analysis (placeholder for model: technique-analysis).</p>
+            <div class="mt-3 flex gap-2"><input id="techVideo" type="file" accept="video/*" class="input"/><button class="btn-primary" onclick="runModel('technique-analysis')">Analyze</button></div>
+            <div id="techResult" class="mt-3 small muted">No analysis yet.</div>
+        </div>
+    </section>
+
+    <!-- PAGE: AI INSIGHTS -->
+    <section id="pageAI" class="page hidden card p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h4 class="font-semibold">AI Insights & Model Control</h4>
+                <p class="small muted mt-1">Seven model wrappers are available — each has a purpose (see list). Use controls to request fresh inference from the server.
+                </p>
+            </div>
+            <div class="text-sm muted">Models: 7</div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Model cards -->
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">trend-ensemble</div><div class="small muted">Aggregates past tests, projects trend</div></div>
+                <div class="mt-3 small muted">Outputs: performance trend, suggested targets.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('trend-ensemble')">Run</button><button class="btn-outline" onclick="viewModelDetail('trend-ensemble')">Details</button></div>
+                <div id="out-trend-ensemble" class="mt-3 small muted"></div>
+            </div>
+
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">injury-risk</div><div class="small muted">Estimate short-term injury risk</div></div>
+                <div class="mt-3 small muted">Outputs: risk score, key contributing factors.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('injury-risk')">Run</button><button class="btn-outline" onclick="viewModelDetail('injury-risk')">Details</button></div>
+                <div id="out-injury-risk" class="mt-3 small muted"></div>
+            </div>
+
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">technique-analysis</div><div class="small muted">Video-based form feedback</div></div>
+                <div class="mt-3 small muted">Requires video upload; runs pose estimation + critique.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('technique-analysis')">Run</button><button class="btn-outline" onclick="viewModelDetail('technique-analysis')">Details</button></div>
+                <div id="out-technique-analysis" class="mt-3 small muted"></div>
+            </div>
+
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">workload-optimizer</div><div class="small muted">Suggests weekly plan balancing volume & intensity</div></div>
+                <div class="mt-3 small muted">Outputs: weekly schedule, S-RPE suggestions.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('workload-optimizer')">Run</button><button class="btn-outline" onclick="viewModelDetail('workload-optimizer')">Details</button></div>
+                <div id="out-workload-optimizer" class="mt-3 small muted"></div>
+            </div>
+
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">recovery-predictor</div><div class="small muted">Estimates readiness / recovery score</div></div>
+                <div class="mt-3 small muted">Outputs: readiness %, recovery tips.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('recovery-predictor')">Run</button><button class="btn-outline" onclick="viewModelDetail('recovery-predictor')">Details</button></div>
+                <div id="out-recovery-predictor" class="mt-3 small muted"></div>
+            </div>
+
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">talent-scout</div><div class="small muted">Identifies high-potential attributes</div></div>
+                <div class="mt-3 small muted">Outputs: suitability scores by sport/position.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('talent-scout')">Run</button><button class="btn-outline" onclick="viewModelDetail('talent-scout')">Details</button></div>
+                <div id="out-talent-scout" class="mt-3 small muted"></div>
+            </div>
+
+            <div class="card p-3">
+                <div class="flex items-center justify-between"><div class="font-medium">personalized-plan</div><div class="small muted">Long-term development plan generator</div></div>
+                <div class="mt-3 small muted">Outputs: periodized plan, milestones, check-ins.</div>
+                <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="runModel('personalized-plan')">Run</button><button class="btn-outline" onclick="viewModelDetail('personalized-plan')">Details</button></div>
+                <div id="out-personalized-plan" class="mt-3 small muted"></div>
+            </div>
+        </div>
+
+        <div class="mt-4 small muted">Notes: LOOK AT THE BACKEND CODE TO SEE THE ML MODELS.</div>
+    </section>
+
+    <!-- PAGE: Activity -->
+    <section id="pageActivity" class="page hidden card p-4">
+        <h4 class="font-semibold">Activity Feed</h4>
+        <div id="activityFeed" class="mt-3 space-y-3 small muted max-h-96 overflow-auto scrollbar-thin">Loading activity…</div>
+        <div class="mt-4 flex gap-2"><input id="activityPost" class="input w-full" placeholder="Post a public comment (mock)"/><button class="btn-primary" onclick="postActivity()">Post</button></div>
+    </section>
+
+    <!-- PAGE: Badges -->
+    <section id="pageBadges" class="page hidden card p-4">
+        <h4 class="font-semibold">Badges & Credits</h4>
+        <div id="badgesGrid" class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 small muted"></div>
+        <div class="mt-4 flex gap-2"><button class="btn-outline" onclick="openModal('awardBadgeModal')">Award badge</button><button class="btn-outline" onclick="openModal('badgesHelpModal')">How badges work</button></div>
+    </section>
+
+</main>
+
+<!-- MODALS -->
+<div id="reportModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('reportModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('reportModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Report Profile</h3>
+        <p class="small muted mt-1">Explain why you're reporting this profile.</p>
+        <textarea id="reportText" class="input w-full mt-3" rows="4"></textarea>
+        <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="submitReport()">Submit</button><button class="btn-outline" onclick="closeModal('reportModal')">Cancel</button></div>
+    </div>
+</div>
+
+<div id="endorseModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('endorseModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('endorseModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Endorse</h3>
+        <p class="small muted mt-1">Add a short endorsement for this athlete (public).</p>
+        <textarea id="endorseText" class="input w-full mt-3" rows="3" placeholder="Great teammate, strong work ethic..."></textarea>
+        <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="submitEndorse()">Endorse</button><button class="btn-outline" onclick="closeModal('endorseModal')">Cancel</button></div>
+    </div>
+</div>
+
+<div id="compareModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('compareModal')"></div>
+    <div class="relative w-full max-w-3xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('compareModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Compare to cohort</h3>
+        <p class="small muted mt-1">Pick metrics to compare.</p>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+            <label class="small muted"><input type="checkbox" id="cmp_vjump" checked/> Vertical jump</label>
+            <label class="small muted"><input type="checkbox" id="cmp_bench"/> Bench</label>
+            <label class="small muted"><input type="checkbox" id="cmp_sprint"/> Max sprint</label>
+            <label class="small muted"><input type="checkbox" id="cmp_cons"/> Consistency</label>
+        </div>
+        <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="compareCohort()">Compare</button><button class="btn-outline" onclick="closeModal('compareModal')">Cancel</button></div>
+        <div id="compareResult" class="mt-3 small muted"></div>
+    </div>
+</div>
+
+<div id="editProfileModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('editProfileModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('editProfileModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Request Profile Edit</h3>
+        <p class="small muted mt-1">Request an edit (admin will review).</p>
+        <input id="editField" class="input w-full mt-2" placeholder="Suggested change"/>
+        <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="submitEditRequest()">Send</button><button class="btn-outline" onclick="closeModal('editProfileModal')">Cancel</button></div>
+    </div>
+</div>
+
+<div id="modelDetailModal" class="hidden fixed inset-0 z-70 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('modelDetailModal')"></div>
+    <div class="relative w-full max-w-3xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('modelDetailModal')">✕</button>
+        <h3 class="text-lg font-semibold accent" id="modelDetailTitle">Model detail</h3>
+        <div id="modelDetailBody" class="mt-3 small muted">—</div>
+        <div class="mt-3 flex gap-2"><button class="btn-outline" onclick="closeModal('modelDetailModal')">Close</button></div>
+    </div>
+</div>
+
+<div id="awardBadgeModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('awardBadgeModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('awardBadgeModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">Award Badge</h3>
+        <input id="awardBadgeTitle" class="input w-full mt-2" placeholder="Badge title"/>
+        <div class="mt-3 flex gap-2"><button class="btn-primary" onclick="awardBadge()">Award</button><button class="btn-outline" onclick="closeModal('awardBadgeModal')">Cancel</button></div>
+    </div>
+</div>
+
+<div id="badgesHelpModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('badgesHelpModal')"></div>
+    <div class="relative w-full max-w-md card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('badgesHelpModal')">✕</button>
+        <h3 class="text-lg font-semibold accent">How badges work</h3>
+        <div class="small muted mt-2">Badges represent recognition. Admins and coaches can award badges. Credits reflect participation.</div>
+        <div class="mt-3 flex gap-2"><button class="btn-outline" onclick="closeModal('badgesHelpModal')">Close</button></div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script type="module" src="/static/studentProfile.js"></script>
+
+<!-- image modal reused -->
+<div id="imgModal" class="hidden fixed inset-0 z-60 flex items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/30" onclick="closeModal('imgModal')"></div>
+    <div class="relative w-full max-w-3xl card p-6">
+        <button class="absolute top-3 right-3 text-muted" onclick="closeModal('imgModal')">✕</button>
+        <img id="imgModalImg" src="" alt="" class="w-full rounded-lg" />
+    </div>
+</div>
+
+</body>
+</html>
