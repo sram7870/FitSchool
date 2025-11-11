@@ -1,4 +1,4 @@
-##Inspiration
+## Inspiration
 
 At MICDS, physical education teachers have long relied on large spreadsheets and forms to track athletic progress — from strength assessments to reflection responses. While this method did work, it was extremely inefficient and cumbersome, making it difficult for teachers to track progress trends or for students to visualize their own growth.
 
